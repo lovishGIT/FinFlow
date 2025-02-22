@@ -1,0 +1,33 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "node dist/server.js",
+        "dev": "tsx --watch src/server.ts",
+        "build": "tsc && tsc-alias",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "envalid": "^8.0.0",
+        "express": "^4.21.2",
+        "graphql": "^16.10.0",
+        "jsonwebtoken": "^9.0.2"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/dotenv": "^8.2.3",
+        "@types/express": "^5.0.0",
+        "@types/node": "^22.13.5",
+        "prisma": "^6.4.1",
+        "tsc-alias": "^1.8.10",
+        "tsx": "^4.19.3",
+        "typescript": "^5.7.3"
+    }
+}
