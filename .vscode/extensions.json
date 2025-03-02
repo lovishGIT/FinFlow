@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "Prisma.prisma",
+        "cvs0.prismasnippets",
+        "sudoaugustin.tailwindcss-transpiler",
+        "bradlc.vscode-tailwindcss"
+    ]
+}

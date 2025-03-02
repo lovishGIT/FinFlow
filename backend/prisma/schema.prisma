@@ -1,14 +1,69 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    USER
+    MERCHANT
+    ACCOUNTANT
+    ADMIN
+}
+
+model User {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    name      String
+    role      Role     @default(USER)
+
+    password  String   // Hashed password
+    balance   Float    @default(0)
+
+    ChatQuery ChatQuery[]
+
+    expenses  String[] // Handle This Manually
+    incomes   String[] // Handle This Manually
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Expense { // Handle User Manually
+    id          String   @id @default(uuid())
+    title       String   @default("Miscellaneous")
+    amount      Float
+    date        DateTime @default(now())
+
+    senderId    String  // Current User
+    receiverId  String  // User who received
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+model Income { // Handle User Manually
+    id          String   @id @default(uuid())
+    title       String   @default("Miscellaneous")
+    amount      Float
+    date        DateTime @default(now())
+
+    senderId    String // User who sent
+    receiverId  String // Current User
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+model ChatQuery { // ChatBot Queries
+    id          String   @id @default(uuid())
+    message     String
+
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+
+    createdAt   DateTime @default(now())
 }
