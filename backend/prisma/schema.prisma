@@ -20,6 +20,9 @@ model User {
     name      String
     role      Role     @default(USER)
 
+    verified  Boolean  @default(false)
+    token     String?  @default("")
+
     password  String   // Hashed password
     balance   Float    @default(0)
 

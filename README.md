@@ -32,7 +32,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## API Endpoints
 
 The project uses the following API endpoints:
-- Not Disclosed Yet!!!
+ - POST /api/auth/login
+ - POST /api/auth/register
+ - POST /api/auth/verify-user
 
 ## Author
 
