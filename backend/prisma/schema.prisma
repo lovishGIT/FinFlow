@@ -58,7 +58,7 @@ model Income { // Handle User Manually
     updatedAt   DateTime @updatedAt
 }
 
-model ChatQuery { // ChatBot Queries
+model ChatQuery { // ChatBot Queries AI
     id          String   @id @default(uuid())
     message     String
 

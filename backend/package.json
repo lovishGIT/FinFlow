@@ -7,7 +7,7 @@
         "init-dev": "prisma migrate dev --name init",
         "init-deploy": "prisma migrate deploy --name init",
         "start": "npx prisma generate && node build/server.js",
-        "dev": "npx prisma generate && npx tsx --watch src/server.ts",
+        "dev": "npx prisma generate && npx nodemon --ext ts,graphql --exec npx tsx src/server.ts",
         "build": "tsc && tsc-alias",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -30,6 +30,7 @@
         "@types/cors": "^2.8.17",
         "@types/dotenv": "^8.2.3",
         "@types/express": "^5.0.0",
+        "@types/jsonwebtoken": "^9.0.9",
         "@types/node": "^22.13.8",
         "prisma": "^6.4.1",
         "tsc-alias": "^1.8.10",

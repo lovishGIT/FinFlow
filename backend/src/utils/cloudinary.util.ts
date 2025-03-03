@@ -4,7 +4,10 @@ export const uploadToCloudinary = async (filePath: string): Promise<any> => {
         const result = await cloudinary.uploader.upload(filePath, {
             folder: 'expense_tracker',
         });
-        return result;
+        return {
+            url: result.url,
+            publicId: result.public_id
+        };
     } catch (error) {
         if (error instanceof Error) {
             throw new Error(
