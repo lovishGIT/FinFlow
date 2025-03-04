@@ -30,34 +30,73 @@ export const getAllTransactions = async (req: Request, res: Response): Promise<a
 }
 
 export const addExpense = async (req: Request, res: Response): Promise<any> => {
-    const { title, amount, receiverId } = req.body;
-    if (!amount || !title || !receiverId) {
-        return res.status(400).json({ message: 'Amount and description are required' });
-    }
-
-    if (!req?.user?.id) return res.status(401).json({
-        message: "Please Login."
-    })
-
-    const getUser = await prisma.user.findFirst({
-        where: {
-            id: req.user.id
+    try {
+        const { title, amount, receiverId } = req.body;
+        if (!amount || !title || !receiverId) {
+            return res.status(400).json({ message: 'Amount and description are required' });
         }
-    });
 
-    if (!getUser || !getUser.balance || getUser.balance < amount) {
-        return res.status(403).json({
-            message: "Low Balance"
+        if (!req?.user?.id) return res.status(401).json({
+            message: "Please Login."
+        })
+
+        const sender = await prisma.user.findFirst({
+            where: {
+                id: req.user.id
+            }
         });
-    }
 
-    const newExpense = await prisma.expense.create({
-        data: {
-            amount,
-            title,
-            senderId: req.user.id,
-            receiverId,
-        },
-    });
-    return res.status(201).json(newExpense);
+        if (!sender || !sender.balance || sender.balance < amount) {
+            return res.status(403).json({
+                message: 'Low Balance',
+            });
+        }
+
+        const receiver = await prisma.user.findFirst({
+            where: {
+                id: receiverId
+            }
+        })
+
+        if (!receiver) {
+            return res.status(404).json({
+                message: "Reciever User Not Found"
+            });
+        }
+
+        const newExpense = await prisma.expense.create({
+            data: {
+                amount: Number.parseInt(amount),
+                title,
+                senderId: sender.id,
+                receiverId: receiver.id,
+            },
+        });
+
+        await prisma.user.update({
+            where: {
+                id: sender.id,
+            },
+            data: {
+                balance: sender.balance - Number.parseInt(amount),
+                expenses: [...sender.expenses, newExpense.id],
+            },
+        });
+
+        await prisma.user.update({
+            where: {
+                id: receiverId,
+            },
+            data: {
+                balance: receiver.balance + Number.parseInt(amount),
+                incomes: [...sender.incomes, newExpense.id]
+            },
+        });
+
+        return res.status(201).json(newExpense);
+    } catch (error) {
+        return res.status(500).json({
+            message: "Internal Server Error"
+        })
+    }
 }
