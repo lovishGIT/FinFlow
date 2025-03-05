@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../config/db.config';
+import prisma from '../config/db.config.js';
 
 export const getAllTransactions = async (req: Request, res: Response): Promise<any> => {
 
@@ -11,13 +11,13 @@ export const getAllTransactions = async (req: Request, res: Response): Promise<a
 
     const getExpenses = await prisma.expense.findMany({
         where: {
-            id: req?.user?.id
+            senderId: req?.user?.id
         }
     });
 
     const getIncome = await prisma.income.findMany({
         where: {
-            id: req?.user?.id,
+            receiverId: req?.user?.id,
         }
     })
 
