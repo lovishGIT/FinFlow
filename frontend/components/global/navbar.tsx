@@ -64,7 +64,6 @@ const Navbar: React.FC = () => {
             }`}
         >
             <div className="container flex h-20 items-center px-4">
-                {/* Logo */}
                 <div className="flex items-center space-x-2">
                     <div
                         className={`flex items-center justify-center h-8 w-8 rounded-lg ${
@@ -84,7 +83,6 @@ const Navbar: React.FC = () => {
                     </span>
                 </div>
 
-                {/* Desktop Navigation */}
                 <div className="hidden md:flex md:flex-1 md:items-center md:justify-center">
                     <ul className="flex space-x-1">
                         {navItems.map((item) => (
@@ -106,7 +104,6 @@ const Navbar: React.FC = () => {
                     </ul>
                 </div>
 
-                {/* Desktop Actions */}
                 <div className="hidden md:flex md:items-center md:space-x-4">
                     {mounted && (
                         <Button
@@ -131,16 +128,18 @@ const Navbar: React.FC = () => {
                             </span>
                         </Button>
                     )}
-                    <Button
-                        variant="outline"
-                        className={`gap-2 ${
-                            !scrolled &&
-                            'border-primary/20 hover:border-primary/40'
-                        }`}
-                    >
-                        <Users className="h-4 w-4" />
-                        Sign In
-                    </Button>
+                    <Link href={'/auth/login'}>
+                        <Button
+                            variant="outline"
+                            className={`gap-2 ${
+                                !scrolled &&
+                                'border-primary/20 hover:border-primary/40'
+                            }`}
+                        >
+                            <Users className="h-4 w-4" />
+                            Sign In
+                        </Button>
+                    </Link>
                     <Button
                         className={`${
                             scrolled
@@ -152,7 +151,6 @@ const Navbar: React.FC = () => {
                     </Button>
                 </div>
 
-                {/* Mobile Menu */}
                 <div className="flex flex-1 justify-end items-center space-x-4 md:hidden">
                     {mounted && (
                         <Button

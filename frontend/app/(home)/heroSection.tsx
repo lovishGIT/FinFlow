@@ -10,7 +10,6 @@ const HeroSection = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
-                    {/* Text Content */}
                     <div className="text-left lg:text-left">
                         <div className="flex items-center gap-2 mb-6">
                             <DollarSign className="w-8 h-8 text-primary" />
@@ -45,8 +44,6 @@ const HeroSection = () => {
                             </Button>
                         </div>
                     </div>
-
-                    {/* Dashboard Image */}
                     <div className="relative flex justify-center lg:justify-end">
                         <div className="relative w-full max-w-[600px] aspect-[16/10] rounded-xl overflow-hidden shadow-2xl">
                             <Image

@@ -79,7 +79,6 @@ const Home = () => {
         <div className="bg-background">
             <HeroSection />
 
-            {/* Stats Section */}
             <div className="py-16 bg-secondary/10">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -103,7 +102,6 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* Portfolio Connection Section */}
             <div className="py-16 bg-background">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-4">

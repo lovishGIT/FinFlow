@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import Navbar from '@/components/global/navbar';
 import { Suspense } from "react";
@@ -22,8 +23,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 >
                     <div className="min-h-screen bg-background text-foreground">
                         <Navbar />
-                        <Suspense fallback={<Loading />}>{children}</Suspense>
+                        <Suspense fallback={<Loading />}>
+                            {children}
+                        </Suspense>
                         <Footer />
+                        <Toaster />
                     </div>
                 </ThemeProvider>
             </body>
