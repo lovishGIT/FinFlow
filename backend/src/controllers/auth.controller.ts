@@ -4,6 +4,7 @@ import prisma from "@/config/db.config.js";
 import generateToken from '@/utils/generateToken.util.js';
 import type { User } from '@prisma/client';
 import env from '@/config/validateEnv.config.js';
+import { sendEmail } from '@/utils/sendEmail.util.js';
 
 export const loginController = async (req: Request, res: Response) : Promise<any> => {
     const { email, password } = req.body;
@@ -51,6 +52,7 @@ export const verifyUser = async (req: Request, res: Response): Promise<any> => {
     if (!token) return res.status(400).json({
         message: "Token is Required"
     })
+
 
     try {
         const getUser = await prisma.user.findFirst({
@@ -100,10 +102,11 @@ export const verifyUser = async (req: Request, res: Response): Promise<any> => {
 
 export const registerController = async (req: Request, res: Response): Promise<any> => {
     const { name, email, password } = req.body;
-    if (!name || !email || !password)
+    if (!name || !email || !password) {
         return res.status(400).json({
             message: 'Full Name & Email & Password must be provided.',
         });
+    }
 
     try {
         const existingUser: User | null = await prisma.user.findFirst({
@@ -141,12 +144,38 @@ export const registerController = async (req: Request, res: Response): Promise<a
             })
         }
 
+        await sendEmail({
+            to: email,
+            subject: 'Registeration Email',
+            text: `Paste this link on browser: ${
+                env.FRONTEND_URL + '/auth/verify/' + hasedToken
+            }`,
+            html: `
+                <p>Click on this button to register yourself.</p>
+                <div style="display: flex; justify-content: center;">
+                    <a
+                        style="padding: "4px 2px"; "
+                        href="${
+                            env.FRONTEND_URL +
+                            '/auth/verify/' +
+                            hasedToken
+                        }"
+                    >
+                        Click Here
+                    </a>
+                </div>
+                <p>
+                    If button doesn't work. Paste this link on browser:
+                    ${env.FRONTEND_URL + '/auth/verify/' + hasedToken}
+                </p>
+            `,
+        });
+
         return res
             .status(201)
             .clearCookie('authToken')
             .json({
-                message: "User Created! Please Verify the user with specified Token within One Hour.",
-                token: hasedToken
+                message: "User Created! Please Verify the user with specified Token within One Hour."
             })
     } catch (error) {
         return res.status(500).json({

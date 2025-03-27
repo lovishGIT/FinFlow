@@ -31,7 +31,6 @@ const Navbar: React.FC = () => {
     const [mounted, setMounted] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
-    // Avoid hydration mismatch
     useEffect(() => {
         setMounted(true);
 
@@ -45,7 +44,7 @@ const Navbar: React.FC = () => {
     }, []);
 
     const navItems: NavItem[] = [
-        { label: 'Dashboard', href: '#dashboard', icon: LineChart },
+        { label: 'Dashboard', href: '/dashboard', icon: LineChart },
         {
             label: 'Transactions',
             href: '#transactions',
@@ -64,24 +63,28 @@ const Navbar: React.FC = () => {
             }`}
         >
             <div className="container flex h-20 items-center px-4">
-                <div className="flex items-center space-x-2">
-                    <div
-                        className={`flex items-center justify-center h-8 w-8 rounded-lg ${
-                            scrolled ? 'bg-primary' : 'bg-primary/20'
-                        }`}
-                    >
-                        <DollarSign
-                            className={`h-5 w-5 ${
+                <Link href={'/'}>
+                    <div className="flex items-center space-x-2">
+                        <div
+                            className={`flex items-center justify-center h-8 w-8 rounded-lg ${
                                 scrolled
-                                    ? 'text-primary-foreground'
-                                    : 'text-primary'
+                                    ? 'bg-primary'
+                                    : 'bg-primary/20'
                             }`}
-                        />
+                        >
+                            <DollarSign
+                                className={`h-5 w-5 ${
+                                    scrolled
+                                        ? 'text-primary-foreground'
+                                        : 'text-primary'
+                                }`}
+                            />
+                        </div>
+                        <span className="hidden font-bold sm:inline-block text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            FinFlow
+                        </span>
                     </div>
-                    <span className="hidden font-bold sm:inline-block text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        FinFlow
-                    </span>
-                </div>
+                </Link>
 
                 <div className="hidden md:flex md:flex-1 md:items-center md:justify-center">
                     <ul className="flex space-x-1">
@@ -140,15 +143,17 @@ const Navbar: React.FC = () => {
                             Sign In
                         </Button>
                     </Link>
-                    <Button
-                        className={`${
-                            scrolled
-                                ? 'bg-primary hover:bg-primary/90'
-                                : 'bg-primary/20 hover:bg-primary/30 text-primary'
-                        }`}
-                    >
-                        Start Free Trial
-                    </Button>
+                    <Link href={'/auth/register'}>
+                        <Button
+                            className={`${
+                                scrolled
+                                    ? 'bg-primary hover:bg-primary/90'
+                                    : 'bg-primary/20 hover:bg-primary/30 text-primary'
+                            }`}
+                        >
+                            Start For Free
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="flex flex-1 justify-end items-center space-x-4 md:hidden">

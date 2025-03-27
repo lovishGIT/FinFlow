@@ -2,14 +2,11 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    Download,
     Building2,
     Users,
     PieChart,
     Clock,
     Shield,
-    TrendingUp,
-    DollarSign,
     CreditCard,
     Wallet,
     LineChart,
@@ -141,7 +138,6 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* Features Section */}
             <div className="py-16">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-4">

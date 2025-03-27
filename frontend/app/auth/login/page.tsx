@@ -1,9 +1,7 @@
 'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
-import { Moon, Sun, LogIn } from 'lucide-react';
+import { useState } from 'react';
+import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,22 +14,50 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { theme, setTheme } = useTheme();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate login process
-        setTimeout(() => {
+        setTimeout(async () => {
             setIsLoading(false);
-            toast('Login Attempt', {
-                description: 'This is a demo. In a real app, you would be logged in now.',
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                    }),
+                });
+                if (!response.ok) {
+                    throw (await response.json());
+                }
+                router.push('/');
+            } catch (error: any) {
+                console.error(error);
+                if (error?.status === 400) {
+                    toast.error('Login Error', {
+                        description: `Error: Bad Login Credentails`,
+                    });
+                } else {
+                    toast.error('Login Error', {
+                        description: 'An Unknown Error occurred while logging in.',
+                    });
+                }
+                return;
+            }
+            toast.success('Login Attempt', {
+                description: 'Successfully Logged in',
             });
         }, 1500);
     };

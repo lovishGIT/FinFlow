@@ -76,9 +76,10 @@ const Footer = () => {
                     <div className="space-y-3">
                         <h4 className="font-medium">Quick Links</h4>
                         <ul className="space-y-2">
-                            {quickLinks.map((ql) => (
+                            {quickLinks.map((ql: footerLinks, index: number) => (
                                 <li>
                                     <Link
+                                        key={ql.element.toString() + index}
                                         href={ql.link}
                                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
                                     >
@@ -92,9 +93,10 @@ const Footer = () => {
                     <div className="space-y-3">
                         <h4 className="font-medium">Resources</h4>
                         <ul className="space-y-2">
-                            {resources.map((resource) => (
+                            {resources.map((resource: footerLinks, index: number) => (
                                 <li>
                                     <Link
+                                        key={resource.element.toString() + index}
                                         href={resource.link}
                                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
                                     >
@@ -108,8 +110,9 @@ const Footer = () => {
                     <div className="space-y-3">
                         <h4 className="font-medium">Connect</h4>
                         <div className="flex space-x-4">
-                            {contacts.map((contact) => (
+                            {contacts.map((contact: footerLinks, index: number) => (
                                 <Link
+                                    key={contact.element.toString() + index}
                                     href={contact.link}
                                     className="text-muted-foreground hover:text-primary transition-colors"
                                 >

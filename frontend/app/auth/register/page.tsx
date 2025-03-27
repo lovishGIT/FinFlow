@@ -1,10 +1,7 @@
-// app/register/page.jsx
 'use client';
-
 import { useState } from 'react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
-import { Moon, Sun, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,24 +15,53 @@ import {
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { theme, setTheme } = useTheme();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
-        setTimeout(() => {
+        setTimeout(async () => {
             setIsLoading(false);
-            toast('Registration Successful', {
-                description:
-                    'This is a demo. In a real app, you would be registered now.',
-            });
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        password,
+                    }),
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    throw (await response.json());
+                }
+
+                router.push('/auth/login');
+            } catch (err : any) {
+                console.error(err);
+                if (err?.status === 500) {
+                    toast('Registration Error', {
+                        description: 'An Unknown Error occurred while registering.',
+                    });
+                } else {
+                    toast('Registration Error', {
+                        description: `Error: ${err?.error || err?.message || err}`,
+                    });
+                }
+                return;
+            }
         }, 1500);
     };
 

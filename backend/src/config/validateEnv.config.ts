@@ -21,15 +21,21 @@ const env = cleanEnv(process.env, {
     }),
 
     CLOUDINARY_NAME: str({
-        devDefault: "stop-this-service"
+        devDefault: 'stop-this-service',
     }),
     CLOUDINARY_API_KEY: str({
-        devDefault: "stop-this-service"
+        devDefault: 'stop-this-service',
     }),
     CLOUDINARY_API_SECRET: str({
-        devDefault: "stop-this-service"
-    })
+        devDefault: 'stop-this-service',
+    }),
 
+    EMAIL_EMAIL: str({
+        default: 'stop-this-service',
+    }),
+    EMAIL_PASSWORD: str({
+        default: 'stop-this-service',
+    }),
 });
 
 export default env;

@@ -14,6 +14,24 @@ enum Role {
     ADMIN
 }
 
+// enum ExpenseCategory {
+//     FOOD
+//     TRANSPORT
+//     ENTERTAINMENT
+//     LUXURY
+//     SHOPPING
+//     HEALTH
+//     OTHERS
+// }
+
+// enum IncomeCategory {
+//     SALARY
+//     BUSINESS
+//     INVESTMENT
+//     GIFT
+//     OTHERS
+// }
+
 model User {
     id        String   @db.VarChar() @id @default(uuid())
     email     String   @db.VarChar() @unique
@@ -38,6 +56,8 @@ model User {
 model Expense { // Handle User Manually
     id          String   @db.VarChar() @id @default(uuid())
     title       String   @db.VarChar() @default("Miscellaneous")
+    category    String   @db.VarChar() @default("Others")
+    description String?  @db.Text()
     amount      Float
     date        DateTime @default(now())
 
@@ -51,6 +71,8 @@ model Expense { // Handle User Manually
 model Income { // Handle User Manually
     id          String   @db.VarChar() @id @default(uuid())
     title       String   @db.VarChar() @default("Miscellaneous")
+    category    String   @db.VarChar() @default("Others")
+    description String?  @db.Text()
     amount      Float
     date        DateTime @default(now())
 
