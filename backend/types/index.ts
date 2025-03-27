@@ -9,11 +9,12 @@ export interface User {
     id: string,
     email: string,
     name: string,
+    avatar?: string,
     role: string,
     verified: Boolean,
     token: string,
     password: string,
-    balance: GLfloat,
+    balance: number,
 
     ChatQuery: ChatQuery[],
     expenses: string[],

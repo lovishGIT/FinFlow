@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../config/db.config.js';
+import prisma from '@/config/db.config.js';
 
 export const getAllTransactions = async (req: Request, res: Response): Promise<any> => {
     if (!req?.user) {
@@ -26,7 +26,7 @@ export const getAllTransactions = async (req: Request, res: Response): Promise<a
     );
 
     return res.status(200).json(transactions);
-}
+};
 
 export const addExpense = async (req: Request, res: Response): Promise<any> => {
     try {
@@ -104,4 +104,4 @@ export const addExpense = async (req: Request, res: Response): Promise<any> => {
             message: "Internal Server Error"
         })
     }
-}
+};

@@ -32,11 +32,23 @@ enum Role {
 //     OTHERS
 // }
 
+model CloudinaryAsset {
+    id        String   @db.VarChar() @id @default(uuid())
+    url       String   @db.VarChar() @unique
+    public_id  String   @db.VarChar() @unique
+    createdAt DateTime @default(now())
+
+    User User[]
+}
+
 model User {
     id        String   @db.VarChar() @id @default(uuid())
     email     String   @db.VarChar() @unique
     name      String   @db.VarChar()
     role      Role     @default(USER)
+
+    avatarId   String?  @db.VarChar() @unique
+    avatar     CloudinaryAsset? @relation(fields: [avatarId], references: [id], onDelete: SetNull)
 
     verified  Boolean  @default(false)
     token     String?  @db.Text() @default("")
