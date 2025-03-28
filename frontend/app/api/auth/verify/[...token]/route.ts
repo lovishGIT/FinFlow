@@ -18,8 +18,9 @@ export async function GET(request: Request, context: { params: { token?: string[
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    token: fullToken
-                })
+                    token: fullToken,
+                }),
+                credentials: 'include',
             }
         );
 

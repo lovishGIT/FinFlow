@@ -15,9 +15,11 @@ import {
 } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/store/useUserStore';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { setUser } = useUserStore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function LoginPage() {
         setTimeout(async () => {
             setIsLoading(false);
             try {
-                const response = await fetch('/api/auth/login', {
+                const resp = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -38,10 +40,28 @@ export default function LoginPage() {
                         email,
                         password,
                     }),
+                    credentials: 'include',
                 });
-                if (!response.ok) {
-                    throw (await response.json());
+                const response = await resp.json();
+                if (resp.status !== 200) {
+                    throw response;
                 }
+
+                toast.success('Login Attempt', {
+                    description: 'Successfully Logged in',
+                });
+
+                const userResponse = await fetch('/api/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                const user = await userResponse.json();
+                console.log("User: ", user);
+
                 router.push('/');
             } catch (error: any) {
                 console.error(error);
@@ -56,9 +76,6 @@ export default function LoginPage() {
                 }
                 return;
             }
-            toast.success('Login Attempt', {
-                description: 'Successfully Logged in',
-            });
         }, 1500);
     };
 

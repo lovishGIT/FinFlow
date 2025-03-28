@@ -24,7 +24,9 @@ const VerifyTokenPage = () => {
 
             try {
                 const response = await fetch(
-                    `/api/auth/verify/${token}`
+                    `/api/auth/verify/${token}`, {
+                        credentials: 'include',
+                    }
                 );
 
                 if (!response.ok) {

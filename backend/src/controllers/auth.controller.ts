@@ -43,7 +43,8 @@ export const loginController = async (req: Request, res: Response) : Promise<voi
 
         res.status(200).cookie("authToken", token, {
             httpOnly: true,
-            sameSite: env.NODE_ENV === "production"
+            secure: env.NODE_ENV === "production",
+            sameSite: "strict",
         }).json({
             message: "User Logged In"
         });
