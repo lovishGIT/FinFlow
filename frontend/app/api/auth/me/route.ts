@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const incomingCookies = request.headers.get('cookie');
+        // console.log("Cookies", incomingCookies);
+
         const response = await fetch(`${process.env.BACKEND_SERVER}/api/auth/me`, {
             method: 'GET',
-            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(incomingCookies ? {Cookie : incomingCookies} : {})
+            }
         });
 
         if (!response.ok) {

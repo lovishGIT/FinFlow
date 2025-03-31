@@ -7,6 +7,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
     Menu,
@@ -17,8 +18,11 @@ import {
     Users,
     Settings,
     Book,
+    LogOut,
+    UserCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useUserStore } from '@/store/useUserStore';
 
 interface NavItem {
     label: string;
@@ -30,6 +34,9 @@ const Navbar: React.FC = () => {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const { user, resetUser } = useUserStore();
+    const [isOpen, setIsOpen] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -38,10 +45,32 @@ const Navbar: React.FC = () => {
             setScrolled(window.scrollY > 50);
         };
 
+        if (typeof document !== 'undefined') {
+            document.body.classList.add('overflow-y-scroll');
+        }
+
         window.addEventListener('scroll', handleScroll);
-        return () =>
+        return () => {
             window.removeEventListener('scroll', handleScroll);
+            if (typeof document !== 'undefined') {
+                document.body.classList.remove('overflow-y-scroll');
+            }
+        }
     }, []);
+
+    const handleLogout = () => {
+        resetUser();
+        setIsOpen(false);
+        setIsMobileOpen(false);
+
+        fetch('/api/auth/logout', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+    };
 
     const navItems: NavItem[] = [
         { label: 'Dashboard', href: '/dashboard', icon: LineChart },
@@ -131,29 +160,101 @@ const Navbar: React.FC = () => {
                             </span>
                         </Button>
                     )}
-                    <Link href={'/auth/login'}>
-                        <Button
-                            variant="outline"
-                            className={`gap-2 ${
-                                !scrolled &&
-                                'border-primary/20 hover:border-primary/40'
-                            }`}
+
+                    {user ? (
+                        <div
+                            onMouseEnter={() => setIsOpen(true)}
+                            onMouseLeave={() => setIsOpen(false)}
                         >
-                            <Users className="h-4 w-4" />
-                            Sign In
-                        </Button>
-                    </Link>
-                    <Link href={'/auth/register'}>
-                        <Button
-                            className={`${
-                                scrolled
-                                    ? 'bg-primary hover:bg-primary/90'
-                                    : 'bg-primary/20 hover:bg-primary/30 text-primary'
-                            }`}
-                        >
-                            Start For Free
-                        </Button>
-                    </Link>
+                            <DropdownMenu
+                                open={isOpen}
+                                onOpenChange={setIsOpen}
+                            >
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={`gap-2 ${
+                                            !scrolled &&
+                                            'border-primary/20 hover:border-primary/40'
+                                        }`}
+                                    >
+                                        <UserCircle className="h-4 w-4" />
+                                        {user.name || 'Profile'}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-56"
+                                >
+                                    <DropdownMenuItem
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <Link
+                                            href="/profile"
+                                            className="w-full flex items-center"
+                                        >
+                                            <UserCircle className="mr-2 h-4 w-4" />
+                                            Profile
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <Link
+                                            href="/settings"
+                                            className="w-full flex items-center"
+                                        >
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            Account Settings
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={handleLogout}
+                                        className="text-red-500"
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <div className="w-full flex items-center">
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            Logout
+                                        </div>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    ) : (
+                        <>
+                            <Link href={'/auth/login'}>
+                                <Button
+                                    variant="outline"
+                                    className={`gap-2 ${
+                                        !scrolled &&
+                                        'border-primary/20 hover:border-primary/40'
+                                    }`}
+                                >
+                                    <Users className="h-4 w-4" />
+                                    Sign In
+                                </Button>
+                            </Link>
+                            <Link href={'/auth/register'}>
+                                <Button
+                                    className={`${
+                                        scrolled
+                                            ? 'bg-primary hover:bg-primary/90'
+                                            : 'bg-primary/20 hover:bg-primary/30 text-primary'
+                                    }`}
+                                >
+                                    Start For Free
+                                </Button>
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex flex-1 justify-end items-center space-x-4 md:hidden">
@@ -179,7 +280,10 @@ const Navbar: React.FC = () => {
                             </span>
                         </Button>
                     )}
-                    <DropdownMenu>
+                    <DropdownMenu
+                        open={isMobileOpen}
+                        onOpenChange={setIsMobileOpen}
+                    >
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
                                 <Menu className="h-5 w-5" />
@@ -193,7 +297,12 @@ const Navbar: React.FC = () => {
                             className="w-56"
                         >
                             {navItems.map((item) => (
-                                <DropdownMenuItem key={item.label}>
+                                <DropdownMenuItem
+                                    key={item.label}
+                                    onSelect={(e) =>
+                                        e.preventDefault()
+                                    }
+                                >
                                     <Link
                                         href={item.href}
                                         className="w-full flex items-center"
@@ -203,24 +312,79 @@ const Navbar: React.FC = () => {
                                     </Link>
                                 </DropdownMenuItem>
                             ))}
-                            <DropdownMenuItem>
-                                <Link
-                                    href="#signin"
-                                    className="w-full flex items-center"
-                                >
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Sign In
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Link
-                                    href="#signup"
-                                    className="w-full flex items-center"
-                                >
-                                    <DollarSign className="mr-2 h-4 w-4" />
-                                    Start Free Trial
-                                </Link>
-                            </DropdownMenuItem>
+
+                            {user ? (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <Link
+                                            href="/profile"
+                                            className="w-full flex items-center"
+                                        >
+                                            <UserCircle className="mr-2 h-4 w-4" />
+                                            Profile
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <Link
+                                            href="/settings"
+                                            className="w-full flex items-center"
+                                        >
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            Account Settings
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={handleLogout}
+                                        className="text-red-500"
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <div className="w-full flex items-center">
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            Logout
+                                        </div>
+                                    </DropdownMenuItem>
+                                </>
+                            ) : (
+                                <>
+                                    <DropdownMenuItem
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <Link
+                                            href="/auth/login"
+                                            className="w-full flex items-center"
+                                        >
+                                            <Users className="mr-2 h-4 w-4" />
+                                            Sign In
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onSelect={(e) =>
+                                            e.preventDefault()
+                                        }
+                                    >
+                                        <Link
+                                            href="/auth/register"
+                                            className="w-full flex items-center"
+                                        >
+                                            <DollarSign className="mr-2 h-4 w-4" />
+                                            Start Free Trial
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

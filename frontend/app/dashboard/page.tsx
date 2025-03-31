@@ -55,6 +55,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { Expense, Income } from '@/types/index';
+import FormDialog from '../../components/dashboard/formDailog';
 
 const expenseCategories = [
     'Groceries',
@@ -131,14 +132,14 @@ const FinanceDashboard = () => {
     });
 
     // Calculate financial metrics
-    const totalExpenses = expenses.reduce(
+    const totalExpenses = Number(expenses.reduce(
         (sum, expense) => sum + expense.amount,
         0
-    );
-    const totalIncomes = incomes.reduce(
+    ));
+    const totalIncomes = Number(incomes.reduce(
         (sum, income) => sum + income.amount,
         0
-    );
+    ));
     const netBalance = totalIncomes - totalExpenses;
 
     // Prepare data for charts
@@ -148,7 +149,6 @@ const FinanceDashboard = () => {
         { month: 'Mar', expenses: 1300, income: 5750 },
     ];
 
-    // Open dialog for adding new item
     const handleAddNew = (type: string) => {
         setDialogMode('add');
         setFormData({
@@ -159,24 +159,24 @@ const FinanceDashboard = () => {
             date: new Date().toISOString().split('T')[0],
         });
         setSelectedItem(null);
+        setActiveTab(type);
         setIsDialogOpen(true);
     };
 
-    // Open dialog for editing existing item
     const handleEdit = (item: Expense | Income, type: string) => {
         setDialogMode('edit');
         setFormData({
             title: item.title,
             category: item.category,
             description: item.description,
-            amount: item.amount,
+            amount: Number(item.amount),
             date: new Date(item.date).toISOString().split('T')[0],
         });
         setSelectedItem({ ...item, type });
+        setActiveTab(type);
         setIsDialogOpen(true);
     };
 
-    // Handle form input changes
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
@@ -187,7 +187,6 @@ const FinanceDashboard = () => {
         }));
     };
 
-    // Handle category change
     const handleCategoryChange = (value: string) => {
         setFormData((prev) => ({
             ...prev,
@@ -195,7 +194,6 @@ const FinanceDashboard = () => {
         }));
     };
 
-    // Save new or edited item
     const handleSave = () => {
         const newItem = {
             id: selectedItem
@@ -204,18 +202,18 @@ const FinanceDashboard = () => {
             title: formData.title,
             category: formData.category,
             description: formData.description,
-            amount: formData.amount,
+            amount: Number(formData.amount),
             date: new Date(formData.date as string),
         };
 
         if (dialogMode === 'add') {
-            if (selectedItem?.type === 'expense') {
+            if (activeTab === 'expense') {
                 setExpenses((prev) => [...prev, newItem as Expense]);
             } else {
                 setIncomes((prev) => [...prev, newItem as Income]);
             }
         } else {
-            if (selectedItem?.type === 'expense') {
+            if (activeTab === 'expense') {
                 setExpenses((prev) =>
                     prev.map((item) =>
                         selectedItem && item.id === selectedItem.id
@@ -223,7 +221,7 @@ const FinanceDashboard = () => {
                             : item
                     )
                 );
-            } else {
+            } else if(activeTab === 'income') {
                 setIncomes((prev) =>
                     prev.map((item) =>
                         selectedItem && item.id === selectedItem.id
@@ -295,14 +293,13 @@ const FinanceDashboard = () => {
                                     {item.description}
                                 </TableCell>
                                 <TableCell
-                                    className={`text-right ${
-                                        type === 'expense'
+                                    className={`text-right ${type === 'expense'
                                             ? 'text-red-600'
                                             : 'text-green-600'
-                                    }`}
+                                        }`}
                                 >
                                     {type === 'expense' ? '-' : '+'}$
-                                    {item.amount.toFixed(2)}
+                                    {Number(item.amount)?.toFixed(2)}
                                 </TableCell>
                                 <TableCell className="text-right">
                                     {new Date(
@@ -354,7 +351,7 @@ const FinanceDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-green-600">
-                            ${totalIncomes.toFixed(2)}
+                            ${Number(totalIncomes)?.toFixed(2)}
                         </div>
                     </CardContent>
                 </Card>
@@ -368,7 +365,7 @@ const FinanceDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-red-600">
-                            ${totalExpenses.toFixed(2)}
+                            ${Number(totalExpenses)?.toFixed(2)}
                         </div>
                     </CardContent>
                 </Card>
@@ -388,7 +385,7 @@ const FinanceDashboard = () => {
                                     : 'text-red-600'
                             }`}
                         >
-                            ${netBalance.toFixed(2)}
+                            ${Number(netBalance)?.toFixed(2)}
                         </div>
                     </CardContent>
                 </Card>
@@ -403,10 +400,10 @@ const FinanceDashboard = () => {
                     <TabsTrigger value="overview">
                         Overview
                     </TabsTrigger>
-                    <TabsTrigger value="expenses">
+                    <TabsTrigger value="expense">
                         Expenses
                     </TabsTrigger>
-                    <TabsTrigger value="incomes">Incomes</TabsTrigger>
+                    <TabsTrigger value="income">Incomes</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview">
@@ -443,139 +440,25 @@ const FinanceDashboard = () => {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="expenses">
+                <TabsContent value="expense">
                     {renderTable(expenses, 'expense')}
                 </TabsContent>
 
-                <TabsContent value="incomes">
+                <TabsContent value="income">
                     {renderTable(incomes, 'income')}
                 </TabsContent>
             </Tabs>
 
-            <Dialog
+            <FormDialog
                 open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {dialogMode === 'add'
-                                ? `Add New ${
-                                    selectedItem?.type === 'expense'
-                                        ? 'Expense'
-                                        : 'Income'
-                                }`
-                                : `Edit ${
-                                    selectedItem?.type === 'expense'
-                                        ? 'Expense'
-                                        : 'Income'
-                                }`}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label
-                                htmlFor="title"
-                                className="text-right"
-                            >
-                                Title
-                            </Label>
-                            <Input
-                                id="title"
-                                name="title"
-                                value={formData.title}
-                                onChange={handleInputChange}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label
-                                htmlFor="category"
-                                className="text-right"
-                            >
-                                Category
-                            </Label>
-                            <Select
-                                value={formData.category}
-                                onValueChange={handleCategoryChange}
-                            >
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select Category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {(selectedItem?.type === 'expense'
-                                        ? expenseCategories
-                                        : incomeCategories
-                                    ).map((category) => (
-                                        <SelectItem
-                                            key={category}
-                                            value={category}
-                                        >
-                                            {category}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label
-                                htmlFor="description"
-                                className="text-right"
-                            >
-                                Description
-                            </Label>
-                            <Input
-                                id="description"
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label
-                                htmlFor="amount"
-                                className="text-right"
-                            >
-                                Amount
-                            </Label>
-                            <Input
-                                id="amount"
-                                name="amount"
-                                type="number"
-                                value={formData.amount}
-                                onChange={handleInputChange}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label
-                                htmlFor="date"
-                                className="text-right"
-                            >
-                                Date
-                            </Label>
-                            <Input
-                                id="date"
-                                name="date"
-                                type="date"
-                                value={formData.date as string}
-                                onChange={handleInputChange}
-                                className="col-span-3"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex justify-end space-x-2 p-4">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsDialogOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button onClick={handleSave}>Save</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                mode={dialogMode as ('add' | 'edit')}
+                activeTab={activeTab as ('expense' | 'income')}
+                formData={formData}
+                onClose={() => setIsDialogOpen(false)}
+                onInputChange={handleInputChange}
+                onCategoryChange={handleCategoryChange}
+                onSave={handleSave}
+            />
         </div>
     );
 };

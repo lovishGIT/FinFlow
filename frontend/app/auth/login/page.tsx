@@ -60,7 +60,7 @@ export default function LoginPage() {
                 });
 
                 const user = await userResponse.json();
-                console.log("User: ", user);
+                setUser(user);
 
                 router.push('/');
             } catch (error: any) {

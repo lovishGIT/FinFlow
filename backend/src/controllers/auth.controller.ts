@@ -43,10 +43,11 @@ export const loginController = async (req: Request, res: Response) : Promise<voi
 
         res.status(200).cookie("authToken", token, {
             httpOnly: true,
-            secure: env.NODE_ENV === "production",
+            secure: env.NODE_ENV === "production" ? true : false,
             sameSite: "strict",
         }).json({
-            message: "User Logged In"
+            message: "User Logged In",
+            token: token
         });
     } catch (error) {
         res.status(500).json({ message: 'Internal Server error' });
