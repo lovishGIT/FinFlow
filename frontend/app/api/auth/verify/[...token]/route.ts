@@ -7,7 +7,7 @@ export async function GET(request: Request, context: { params: { token?: string[
     }
 
     const fullToken = decodeURIComponent(token.join('/'));
-    console.log('Decoded Token:', fullToken);
+    // console.log('Decoded Token:', fullToken);
 
     try {
         const resp = await fetch(

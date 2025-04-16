@@ -26,6 +26,8 @@ export async function POST(request: Request) {
 
         const data = await response.json();
 
+        // console.log('Login response:', data, response);
+
         const { message, token } = data;
         if (token && token?.toString()?.trim()?.length > 0) {
             // console.log("token", token);

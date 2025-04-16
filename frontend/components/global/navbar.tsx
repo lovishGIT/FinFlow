@@ -79,7 +79,7 @@ const Navbar: React.FC = () => {
             href: '#transactions',
             icon: DollarSign,
         },
-        { label: 'Reports', href: '#reports', icon: Book },
+        { label: 'Reports', href: '/reports', icon: Book },
         { label: 'Settings', href: '#settings', icon: Settings },
     ];
 

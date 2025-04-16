@@ -21,7 +21,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <div className="min-h-screen bg-background text-foreground">
+                    <div className="min-h-screen">
                         <Navbar />
                         <Suspense fallback={<Loading />}>
                             {children}

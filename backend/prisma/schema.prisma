@@ -70,11 +70,11 @@ model Expense { // Handle User Manually
     title       String   @db.VarChar() @default("Miscellaneous")
     category    String   @db.VarChar() @default("Others")
     description String?  @db.Text()
-    amount      Float
+    amount      Float    
     date        DateTime @default(now())
 
-    senderId    String  @db.VarChar() // Current User
-    receiverId  String  @db.VarChar() // User who received
+    senderId    String   @db.VarChar() // Current User
+    receiverId  String?  @db.VarChar() // User who received
 
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
@@ -88,7 +88,7 @@ model Income { // Handle User Manually
     amount      Float
     date        DateTime @default(now())
 
-    senderId    String  @db.VarChar() // User who sent
+    senderId    String? @db.VarChar() // User who sent
     receiverId  String  @db.VarChar() // Current User
 
     createdAt   DateTime @default(now())
