@@ -38,7 +38,6 @@ export const fetchTransactionsService = async ({ setExpenses, setIncomes }: {
 // Expense Services
 
 export async function addExpenseService(expense: Partial<Expense>, addExpense: (expenses: Expense) => void) {
-    console.log("Body Data: ", expense);
     const newExpense = await fetcher<Expense>(`/api/money/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -117,20 +117,26 @@ export const addExpense = async (
             },
         });
 
-        await prisma.user.update({
-            where: {
-                id: receiverId,
-            },
-            data: {
-                balance: receiver.balance + Number.parseInt(amount),
-                incomes: [...sender.incomes, newIncome.id],
-            },
-        });
+        if (receiver) {
+            await prisma.user.update({
+                where: {
+                    id: receiver.id,
+                },
+                data: {
+                    balance:
+                        receiver.balance + Number.parseInt(amount),
+                    incomes: [...sender.incomes, newIncome.id],
+                },
+            });
+        } else {
+            console.log('Receiver not found, unable to update balance');
+        }
 
         return res.status(201).json({
             message: "Expense Added Successfully..."
         });
     } catch (error) {
+        console.log("Error", error);
         return res.status(500).json({
             message: 'Internal Server Error',
         });

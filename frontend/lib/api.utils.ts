@@ -40,7 +40,6 @@ export const fetcher = async <T>(url: string, options?: {
 
     if (response.status === 200 || response.status === 201 || response.status === 204) {
         const data = await response.json();
-        // console.log('url', url,' Response:', data); // Debugging
         return (data?.data || data) as T;
     }
 

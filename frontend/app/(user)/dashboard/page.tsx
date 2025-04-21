@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Card,
     CardContent,
@@ -108,7 +108,7 @@ const FinanceDashboard = () => {
         ) || 0;
     const netBalance = totalIncomes - totalExpenses;
 
-    const getMonthlyData = () => {
+    const monthlyData = useMemo(() => {
         if (!expenses || !incomes) return [];
 
         const monthNames = [
@@ -125,6 +125,7 @@ const FinanceDashboard = () => {
             'Nov',
             'Dec',
         ];
+
         const monthlyData: {
             month: string;
             expenses: number;
@@ -133,36 +134,49 @@ const FinanceDashboard = () => {
 
         // Initialize data for each month
         monthNames.forEach((month, index) => {
-            monthlyData.push({
+            monthlyData[index] = {
                 month,
                 expenses: 0,
                 income: 0,
-            });
+            };
         });
 
         // Aggregate expense data by month
         expenses.forEach((expense) => {
             const date = new Date(expense.date);
             const monthIndex = date.getMonth();
-            monthlyData[monthIndex].expenses += Number(
-                expense.amount
-            );
+            if (!monthlyData[monthIndex]?.expenses) {
+                monthlyData[monthIndex] = {
+                    ...monthlyData[monthIndex],
+                    expenses: Number(expense.amount),
+                };
+            } else {
+                monthlyData[monthIndex].expenses += Number(
+                    expense.amount
+                );
+            }
         });
 
-        // Aggregate income data by month
         incomes.forEach((income) => {
             const date = new Date(income.date);
             const monthIndex = date.getMonth();
-            monthlyData[monthIndex - 1].income += Number(income.amount);
+            if (!monthlyData[monthIndex - 1]?.income) {
+                // console.log('error', monthIndex - 1, monthlyData[monthIndex - 1]);
+                monthlyData[monthIndex - 1] = {
+                    ...monthlyData[monthIndex - 1],
+                    income: Number(income.amount),
+                };
+            } else {
+                monthlyData[monthIndex - 1].income += Number(
+                    income.amount
+                );
+            }
         });
 
-        // Filter out months with no data
         return monthlyData.filter(
             (item) => item.expenses > 0 || item.income > 0
         );
-    };
-
-    const monthlyData = getMonthlyData();
+    }, [expenses, incomes]);
 
     const handleAddNew = (type: string) => {
         setDialogMode('add');
@@ -207,12 +221,22 @@ const FinanceDashboard = () => {
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
-        const { name, value } = e.target;
-        console.log('Input Change:', name, value);
+        let { name, value }: {
+            name: string;
+            value: string | number | undefined | Date;
+        } = e.target;
+
+        if (name === 'amount') {
+            value = parseFloat(value as string) || 0;
+        } else if (name === 'date') {
+            value = new Date(value);
+        } else if (name === 'receiverId' || name === 'senderId' || name === 'receiverEmail' || name === 'senderEmail') {
+            value = value.trim() || undefined;
+        }
+
         setFormData((prev) => ({
             ...prev,
-            [name]:
-                name === 'amount' ? parseFloat(value) || 0 : value,
+            [name]: name === 'amount' ? parseFloat(value as string) || 0 : value,
         }));
     };
 
@@ -276,7 +300,6 @@ const FinanceDashboard = () => {
                     );
                     toast.success('Expense updated successfully');
                 } else if (activeTab === 'income' && selectedItem) {
-                    // Assuming updateIncome is an API call to update income
                     await updateIncomeService(
                         selectedItem.id,
                         newItem as Income,

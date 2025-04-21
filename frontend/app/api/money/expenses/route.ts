@@ -9,7 +9,10 @@ export async function POST(req: NextRequest) {
         const res = await fetch(BASE_URL, {
             method: 'POST',
             body: JSON.stringify(body),
-            headers: { 'Content-Type': 'application/json', ...incomingCookies ? { Cookie: incomingCookies } : {} },
+            headers: {
+                'Content-Type': 'application/json',
+                ...incomingCookies ? { Cookie: incomingCookies } : {}
+            },
         });
         const data = await res.json();
         console.log('Data:', data);
