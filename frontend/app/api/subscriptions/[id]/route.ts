@@ -74,3 +74,38 @@ export async function PUT(
         );
     }
 }
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    try {
+        const incomingCookies = request.headers.get('cookie');
+        const { id } = params;
+
+        const response = await fetch(`${BASE_URL}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(incomingCookies ? { Cookie: incomingCookies } : {}),
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `Error deleting subscription: ${response.statusText}`
+            );
+        }
+
+        return NextResponse.json(
+            { message: 'Subscription deleted successfully' },
+            { status: 200 }
+        );
+    } catch (error) {
+        console.error('Error in subscription DELETE route:', error);
+        return NextResponse.json(
+            { error: 'Failed to delete subscription' },
+            { status: 500 }
+        );
+    }
+}

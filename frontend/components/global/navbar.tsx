@@ -20,6 +20,7 @@ import {
     Book,
     LogOut,
     UserCircle,
+    Subscript,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUserStore } from '@/store/useUserStore';
@@ -74,13 +75,13 @@ const Navbar: React.FC = () => {
 
     const navItems: NavItem[] = [
         { label: 'Dashboard', href: '/dashboard', icon: LineChart },
-        {
-            label: 'Transactions',
-            href: '#transactions',
-            icon: DollarSign,
-        },
+        // {
+        //     label: 'Transactions',
+        //     href: '#transactions',
+        //     icon: DollarSign,
+        // },
         { label: 'Reports', href: '/reports', icon: Book },
-        { label: 'Settings', href: '#settings', icon: Settings },
+        { label: 'Subscriptions', href: '/subscriptions', icon: Subscript },
     ];
 
     return (

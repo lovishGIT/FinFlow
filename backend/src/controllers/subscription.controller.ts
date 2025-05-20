@@ -7,6 +7,13 @@ export const createSubscription = async (
     req: Request,
     res: Response
 ) => {
+    if (!req.user || !req.user.id) {
+        res.status(401).json({
+            success: false,
+            error: 'Please Login!'
+        });
+        return;
+    }
     try {
         const subscriptionData = req.body;
 
@@ -17,7 +24,7 @@ export const createSubscription = async (
                 amount: subscriptionData.amount,
                 description: subscriptionData.description,
                 status: subscriptionData.status || 'ACTIVE',
-                userId: subscriptionData.userId,
+                userId: req.user?.id,
                 startDate: subscriptionData.startDate
                     ? new Date(subscriptionData.startDate)
                     : new Date(),
@@ -31,12 +38,14 @@ export const createSubscription = async (
             success: true,
             data: subscription,
         });
+        return;
     } catch (error) {
         console.error('Error creating subscription:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to create subscription',
         });
+        return;
     }
 };
 

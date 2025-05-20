@@ -121,11 +121,17 @@ export async function deleteIncomeService(id: string, deleteIncome: (id: string)
 // Subscription Services
 
 export async function fetchSubscriptionsService(setSubscriptions: (subscriptions: Subscription[]) => void) {
+
     const subscriptions = await fetcher<Subscription[]>(
-        '/api/subscriptions'
+        '/api/subscriptions',
+        {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        }
     );
 
-    console.log('Subscriptions Data: ', subscriptions);
+    // console.log('Subscriptions Data: ', subscriptions);
 
     if (!subscriptions) {
         throw new Error('Invalid Subscriptions Data');
@@ -136,7 +142,13 @@ export async function fetchSubscriptionsService(setSubscriptions: (subscriptions
 
 // Fetch a single subscription by ID
 export async function fetchSubscriptionByIdService ( id: string, setSubscription: (subscription: Subscription) => void) {
-    const subscription = await fetcher<Subscription>(`/api/subscriptions/${id}`);
+    const subscription = await fetcher<Subscription>(
+        `/api/subscriptions/${id}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        }
+    );
 
     if (!subscription) {
         throw new Error('Invalid Subscription Data');
@@ -183,18 +195,46 @@ export async function updateSubscriptionService(
 // Toggle subscription status (active/inactive/cancelled)
 export async function toggleSubscriptionService(
     id: string,
-    updateSubscription: (id: string, updatedSubscription: Partial<Subscription>) => void
+    toggleSubscription: (
+        id: string,
+        status: 'ACTIVE' | 'INACTIVE' | 'CANCELLED'
+    ) => void
 ) {
-    const toggledSubscription = await fetcher<Subscription>(`/api/subscriptions/toggle/${id}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-    });
+    const newSubscription = await fetcher<Subscription>(
+        `/api/subscriptions/${id}/toggle`,
+        {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        }
+    );
 
-    if (!toggledSubscription) throw new Error('Failed to toggle subscription');
+    if (!newSubscription) {
+        throw new Error('Failed to toggle subscription');
+    }
 
     // Update the subscription in the state with the returned data
-    updateSubscription(id, toggledSubscription);
+    toggleSubscription(id, newSubscription.status);
 
-    return toggledSubscription;
+    return newSubscription;
+};
+
+export const deleteSubscriptionService = async (
+    id: string,
+    deleteSubscription: (id: string) => void
+) => {
+
+    const deletedSubscription = await fetcher<Subscription>(
+        `/api/subscriptions/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        }
+    );
+
+    if (!deletedSubscription) {
+        throw new Error('Failed to delete Subscription');
+    }
+
+    deleteSubscription(id);
 };
