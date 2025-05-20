@@ -1,5 +1,12 @@
+import * as fs from "fs";
+import { parse } from 'papaparse';
+
 import { Request, Response } from 'express';
 import prisma from '@/config/db.config.js';
+
+import { IncomeCSVRow, ExpenseCSVRow } from '@/../types/index.js';
+import { validateExpenseRow, validateIncomeRow } from '@/utils/validateCSV.util.js';
+
 
 export const getAllTransactions = async (
     req: Request,
@@ -44,12 +51,13 @@ export const addExpense = async (
             category,
             description,
             amount,
-            receiverId, receiverEmail,
             date,
         } = req.body;
-        if (!amount || (!receiverEmail && !receiverId)) {
+
+
+        if (!amount) {
             return res.status(400).json({
-                message: 'Amount & Reciever are required',
+                message: 'Amount is required',
             });
         }
 
@@ -65,24 +73,6 @@ export const addExpense = async (
             });
         }
 
-        if (!sender.balance || sender.balance < amount) {
-            return res.status(403).json({
-                message: 'Low Balance',
-            });
-        }
-
-        const receiver = await prisma.user.findFirst({
-            where: {
-                OR: [{ id: receiverId }, { email: receiverEmail }],
-            },
-        });
-
-        if (!receiver) {
-            return res.status(404).json({
-                message: 'Reciever Not Found',
-            });
-        }
-
         const newExpense = await prisma.expense.create({
             data: {
                 amount: Number.parseInt(amount),
@@ -90,7 +80,6 @@ export const addExpense = async (
                 category,
                 description,
                 senderId: sender.id,
-                receiverId: receiver.id,
                 date: date ? new Date(date) : new Date()
             },
         });
@@ -100,37 +89,9 @@ export const addExpense = async (
                 id: sender.id,
             },
             data: {
-                balance: sender.balance - Number.parseInt(amount),
                 expenses: [...sender.expenses, newExpense.id],
             },
         });
-
-        const newIncome = await prisma.income.create({
-            data: {
-                amount: Number.parseInt(amount),
-                title,
-                category,
-                description,
-                senderId: sender.id,
-                receiverId: receiver.id,
-                date: date ? new Date(date) : new Date()
-            },
-        });
-
-        if (receiver) {
-            await prisma.user.update({
-                where: {
-                    id: receiver.id,
-                },
-                data: {
-                    balance:
-                        receiver.balance + Number.parseInt(amount),
-                    incomes: [...sender.incomes, newIncome.id],
-                },
-            });
-        } else {
-            console.log('Receiver not found, unable to update balance');
-        }
 
         return res.status(201).json({
             message: "Expense Added Successfully..."
@@ -179,7 +140,6 @@ export const updateExpense = async (
         const { id } = req.params;
         const { title, category, description, amount, date } = req.body;
 
-        // Find the existing expense
         const existingExpense = await prisma.expense.findUnique({
             where: { id },
         });
@@ -189,14 +149,12 @@ export const updateExpense = async (
                 .json({ message: 'Expense not found' });
         }
 
-        // Optional: Verify that the expense belongs to the logged-in user (sender)
         if (existingExpense.senderId !== req.user.id) {
             return res.status(403).json({
                 message: 'You are not allowed to update this expense',
             });
         }
 
-        // Update the expense record
         const updatedExpense = await prisma.expense.update({
             where: { id },
             data: {
@@ -210,6 +168,7 @@ export const updateExpense = async (
                 date: date ? new Date(date) : existingExpense.date
             },
         });
+
         return res.status(200).json(updatedExpense);
     } catch (error) {
         return res
@@ -235,7 +194,6 @@ export const deleteExpense = async (
                 .status(404)
                 .json({ message: 'Expense not found' });
         }
-        // Optional: Check ownership before deletion
         if (existingExpense.senderId !== req.user.id) {
             return res.status(403).json({
                 message: 'You are not allowed to delete this expense',
@@ -262,69 +220,28 @@ export const addIncome = async (
         if (!req?.user?.id) {
             return res.status(401).json({ message: 'Please Login.' });
         }
-        const { title, category, description, amount, senderId, senderEmail, date } = req.body;
-        if (!amount && (!senderId || !senderEmail)) {
+        const { title, category, description, amount, date } = req.body;
+        if (!amount) {
             return res.status(400).json({
                 message: 'Amount and sender information are required',
             });
-        }
+        };
 
-        const sender = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { id: senderId },
-                    { email: senderEmail },
-                ],
-            },
-        });
-        if (!sender) {
-            return res
-                .status(404)
-                .json({ message: 'Sender Not Found' });
-        }
-
-        console.log('Sender:', sender);
-
-        // Create income record
         const newIncome = await prisma.income.create({
             data: {
                 amount: Number.parseInt(amount),
                 title,
                 category,
                 description,
-                senderId: sender.id,
                 receiverId: req.user.id,
                 date: date ? new Date(date) : new Date()
             },
         });
 
-        // Update receiver balance & income list
         await prisma.user.update({
             where: { id: req.user.id },
             data: {
-                balance: { increment: Number.parseInt(amount) },
                 incomes: { push: newIncome.id },
-            },
-        });
-
-        const newExpense = await prisma.expense.create({
-            data: {
-                amount: Number.parseInt(amount),
-                title,
-                category,
-                description,
-                senderId: sender.id,
-                receiverId: req.user.id,
-                date: date ? new Date(date) : new Date()
-            },
-        });
-
-        // Optionally, update sender records if needed (e.g., expenses or other records)
-        await prisma.user.update({
-            where: { id: sender.id },
-            data: {
-                balance: { decrement: Number.parseInt(amount) },
-                expenses: { push: newExpense.id },
             },
         });
 
@@ -347,15 +264,18 @@ export const getIncomeById = async (
         if (!req?.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
+
         const { id } = req.params;
         const income = await prisma.income.findUnique({
             where: { id },
         });
+
         if (!income) {
             return res
                 .status(404)
                 .json({ message: 'Income record not found' });
         }
+
         return res.status(200).json(income);
     } catch (error) {
         return res
@@ -378,12 +298,13 @@ export const updateIncome = async (
         const existingIncome = await prisma.income.findUnique({
             where: { id },
         });
+
         if (!existingIncome) {
             return res
                 .status(404)
                 .json({ message: 'Income record not found' });
         }
-        // Optional: Verify that the income belongs to the logged-in user (receiver)
+
         if (existingIncome.receiverId !== req.user.id) {
             return res.status(403).json({
                 message: 'You are not allowed to update this income',
@@ -397,12 +318,12 @@ export const updateIncome = async (
                 category: category || existingIncome.category,
                 description:
                     description || existingIncome.description,
-                amount: amount
-                    ? Number.parseInt(amount)
+                amount: amount ? Number.parseInt(amount)
                     : existingIncome.amount,
                 date: date ? new Date(date) :  existingIncome.date,
             },
         });
+
         return res.status(200).json(updatedIncome);
     } catch (error) {
         return res
@@ -428,7 +349,6 @@ export const deleteIncome = async (
                 .status(404)
                 .json({ message: 'Income record not found' });
         }
-        // Optional: Verify ownership
         if (existingIncome.receiverId !== req.user.id) {
             return res.status(403).json({
                 message: 'You are not allowed to delete this income',
@@ -444,5 +364,275 @@ export const deleteIncome = async (
         return res
             .status(500)
             .json({ message: 'Internal Server Error' });
+    }
+};
+
+export const uploadIncomeCSV = async (
+    req: Request,
+    res: Response
+): Promise<any> => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'Please Login.' });
+        }
+
+        if (!req.file) {
+            return res
+                .status(400)
+                .json({ message: 'No file uploaded' });
+        }
+
+        const csvFilePath = req.file.path;
+        const fileContent = fs.readFileSync(csvFilePath, 'utf8');
+
+        // Parse the CSV file
+        parse(fileContent, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: async (results) => {
+                const { data, errors } = results;
+
+                if (errors.length > 0) {
+                    return res.status(400).json({
+                        message: 'Error parsing CSV file',
+                        errors,
+                    });
+                }
+
+                const validRows: IncomeCSVRow[] = [];
+                const invalidRows: IncomeCSVRow[] = [];
+
+                // Validate each row
+                data.forEach((row: any) => {
+                    if (validateIncomeRow(row)) {
+                        validRows.push(row);
+                    } else {
+                        invalidRows.push(row);
+                    }
+                });
+
+                // Process valid rows and add to database
+                try {
+                    const createdIncomes = await prisma.$transaction(
+                        validRows.map((row) => {
+                            return prisma.income.create({
+                                data: {
+                                    amount: Number(row.amount),
+                                    title:
+                                        row.title || 'Miscellaneous',
+                                    category:
+                                        row.category || 'Others',
+                                    description:
+                                        row.description || null,
+                                    senderId: row.senderId || null,
+                                    receiverId: req.user!.id,
+                                    date: row.date
+                                        ? new Date(row.date)
+                                        : new Date(),
+                                },
+                            });
+                        })
+                    );
+
+                    // Update user with new income IDs
+                    if (createdIncomes.length > 0) {
+                        const incomeIds = createdIncomes.map(
+                            (income) => income.id
+                        );
+
+                        await prisma.user.update({
+                            where: { id: req.user?.id },
+                            data: {
+                                incomes: {
+                                    push: incomeIds,
+                                },
+                            },
+                        });
+                    }
+
+                    // Clean up the uploaded file
+                    fs.unlinkSync(csvFilePath);
+
+                    return res.status(201).json({
+                        message: 'Income data uploaded successfully',
+                        totalRows: data.length,
+                        successfulRows: validRows.length,
+                        failedRows: invalidRows.length,
+                        failures:
+                            invalidRows.length > 0
+                                ? invalidRows
+                                : undefined,
+                    });
+                } catch (error) {
+                    console.error('Database error:', error);
+                    return res.status(500).json({
+                        message: 'Error saving data to database',
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : 'Unknown error',
+                    });
+                }
+            },
+            error: (error: Error) => {
+                console.error('CSV parsing error:', error);
+                return res.status(400).json({
+                    message: 'Error parsing CSV file',
+                    error: error.message,
+                });
+            },
+        });
+    } catch (error) {
+        console.error('Server error:', error);
+        return res.status(500).json({
+            message: 'Internal Server Error',
+            error:
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error',
+        });
+    }
+};
+
+
+export const uploadExpenseCSV = async (
+    req: Request,
+    res: Response
+): Promise<any> => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'Please Login.' });
+        }
+
+        if (!req.file) {
+            return res
+                .status(400)
+                .json({ message: 'No file uploaded' });
+        }
+
+        const csvFilePath = req.file.path;
+        const fileContent = fs.readFileSync(csvFilePath, 'utf8');
+
+        // Parse the CSV file
+        parse(fileContent, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: async (results) => {
+                const { data, errors } = results;
+
+                if (errors.length > 0) {
+                    return res.status(400).json({
+                        message: 'Error parsing CSV file',
+                        errors,
+                    });
+                }
+
+                const validRows: ExpenseCSVRow[] = [];
+                const invalidRows: ExpenseCSVRow[] = [];
+
+                // Validate each row
+                data.forEach((row: any) => {
+                    if (validateExpenseRow(row)) {
+                        validRows.push(row);
+                    } else {
+                        invalidRows.push(row);
+                    }
+                });
+
+                // Process valid rows and add to database
+                try {
+                    const user = await prisma.user.findFirst({
+                        where: { id: req.user!.id },
+                    });
+
+                    if (!user) {
+                        return res.status(404).json({
+                            message: 'User Not Found',
+                        });
+                    }
+
+                    const createdExpenses = await prisma.$transaction(
+                        validRows.map((row) => {
+                            return prisma.expense.create({
+                                data: {
+                                    amount: Number(row.amount),
+                                    title:
+                                        row.title || 'Miscellaneous',
+                                    category:
+                                        row.category || 'Others',
+                                    description:
+                                        row.description || null,
+                                    senderId: req.user!.id,
+                                    receiverId:
+                                        row.receiverId || null,
+                                    date: row.date
+                                        ? new Date(row.date)
+                                        : new Date(),
+                                },
+                            });
+                        })
+                    );
+
+                    // Update user with new expense IDs
+                    if (createdExpenses.length > 0) {
+                        const expenseIds = createdExpenses.map(
+                            (expense) => expense.id
+                        );
+                        const currentExpenses = user.expenses || [];
+
+                        await prisma.user.update({
+                            where: { id: user.id },
+                            data: {
+                                expenses: [
+                                    ...currentExpenses,
+                                    ...expenseIds,
+                                ],
+                            },
+                        });
+                    }
+
+                    // Clean up the uploaded file
+                    fs.unlinkSync(csvFilePath);
+
+                    return res.status(201).json({
+                        message: 'Expense data uploaded successfully',
+                        totalRows: data.length,
+                        successfulRows: validRows.length,
+                        failedRows: invalidRows.length,
+                        failures:
+                            invalidRows.length > 0
+                                ? invalidRows
+                                : undefined,
+                    });
+                } catch (error) {
+                    console.error('Database error:', error);
+                    return res.status(500).json({
+                        message: 'Error saving data to database',
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : 'Unknown error',
+                    });
+                }
+            },
+            error: (error: Error) => {
+                console.error('CSV parsing error:', error);
+                return res.status(400).json({
+                    message: 'Error parsing CSV file',
+                    error: error.message,
+                });
+            },
+        });
+    } catch (error) {
+        console.error('Server error:', error);
+        return res.status(500).json({
+            message: 'Internal Server Error',
+            error:
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error',
+        });
     }
 };

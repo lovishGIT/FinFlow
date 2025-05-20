@@ -146,7 +146,7 @@ export default function ReportsPage() {
                                 key={`tooltip-item-${index}`}
                                 style={{ color: entry.color }}
                             >
-                                {entry.name}: $
+                                {entry.name}: ₹
                                 {entry.value.toFixed(2)}
                             </p>
                         ))}
@@ -182,20 +182,6 @@ export default function ReportsPage() {
         a.click();
         document.body.removeChild(a);
     };
-
-// [
-    // {
-    //     month: "jan",
-    //     incomes: 1000,
-    //     expenses: 500,
-    //     savings: 500,
-    // }, {
-    //     month: "jan",
-    //     incomes: 1000,
-    //     expenses: 500,
-    //     savings: 500,
-    // }
-// ]
 
     if (isLoading) {
         return (
@@ -448,7 +434,7 @@ export default function ReportsPage() {
                                                         formatter={(
                                                             value
                                                         ) =>
-                                                            `$${Number(
+                                                            `₹${Number(
                                                                 value
                                                             ).toFixed(
                                                                 2
@@ -567,7 +553,7 @@ export default function ReportsPage() {
                                                         formatter={(
                                                             value
                                                         ) =>
-                                                            `$${Number(
+                                                            `₹${Number(
                                                                 value
                                                             ).toFixed(
                                                                 2

@@ -87,15 +87,10 @@ const FinanceDashboard = () => {
         category: '',
         description: '',
         amount: 0,
-        receiverId: undefined,
-        receiverEmail: undefined,
-        senderId: undefined,
-        senderEmail: undefined,
         date: new Date().toISOString().split('T')[0],
     });
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    // Calculate financial metrics
     const totalExpenses =
         expenses?.reduce(
             (sum, expense) => sum + Number(expense.amount),
@@ -132,7 +127,6 @@ const FinanceDashboard = () => {
             income: number;
         }[] = [];
 
-        // Initialize data for each month
         monthNames.forEach((month, index) => {
             monthlyData[index] = {
                 month,
@@ -141,7 +135,6 @@ const FinanceDashboard = () => {
             };
         });
 
-        // Aggregate expense data by month
         expenses.forEach((expense) => {
             const date = new Date(expense.date);
             const monthIndex = date.getMonth();
@@ -185,16 +178,18 @@ const FinanceDashboard = () => {
             category: '',
             description: '',
             amount: 0,
-            receiverId: undefined,
-            receiverEmail: undefined,
-            senderId: undefined,
-            senderEmail: undefined,
             date: new Date().toISOString().split('T')[0],
         });
         setSelectedItem(null);
         setActiveTab(type);
         setIsDialogOpen(true);
     };
+
+    const handleCsvUpload = () => {
+        toast.error(
+            'CSV upload feature is in progress yet.'
+        );
+    }
 
     const handleEdit = (item: Partial<Expense | Income>, type: string) => {
         setDialogMode('edit');
@@ -203,14 +198,6 @@ const FinanceDashboard = () => {
             category: item.category,
             description: item.description,
             amount: Number(item.amount),
-            ...(type === 'expense' ? {
-                receiverId: (item as Expense)?.receiverId,
-                receiverEmail: (item as Expense)?.receiverEmail,
-            } : {}),
-            ...(type === 'income' ? {
-                senderId: (item as Income)?.senderId,
-                senderEmail: (item as Income)?.senderEmail,
-            } : {}),
             date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         });
         setSelectedItem({ ...(item as ItemWithType), type });
@@ -221,17 +208,17 @@ const FinanceDashboard = () => {
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
-        let { name, value }: {
+        let { name, value, type }: {
             name: string;
             value: string | number | undefined | Date;
+            type: string;
         } = e.target;
 
-        if (name === 'amount') {
-            value = parseFloat(value as string) || 0;
-        } else if (name === 'date') {
+        if (type === 'date') {
             value = new Date(value);
-        } else if (name === 'receiverId' || name === 'senderId' || name === 'receiverEmail' || name === 'senderEmail') {
-            value = value.trim() || undefined;
+        }
+        else if (name === 'amount') {
+            value = parseFloat(value as string) || 0;
         }
 
         setFormData((prev) => ({
@@ -256,19 +243,11 @@ const FinanceDashboard = () => {
                 category: formData.category || '',
                 description: formData.description || '',
                 amount: Number(formData.amount) || 0,
-                ...(activeTab === 'expense' ? {
-                    receiverId: 'receiverId' in formData ? formData.receiverId : undefined,
-                    receiverEmail: 'receiverEmail' in formData ? formData.receiverEmail : undefined,
-                } : {
-                    senderId: 'senderId' in formData ? formData.senderId : undefined,
-                    senderEmail: 'senderEmail' in formData ? formData.senderEmail : undefined,
-                }),
                 date: formData.date || new Date().toISOString().split('T')[0],
             };
 
             if (dialogMode === 'add') {
                 if (activeTab === 'expense') {
-                    // Assuming addExpense is an API call to add expense
                     await addExpenseService(newItem as Expense, addExpense);
                     setExpenses([
                         ...(expenses || []),
@@ -416,7 +395,7 @@ const FinanceDashboard = () => {
                                         {type === 'expense'
                                             ? '-'
                                             : '+'}
-                                        $
+                                        ₹
                                         {Number(item.amount)?.toFixed(
                                             2
                                         )}
@@ -487,7 +466,7 @@ const FinanceDashboard = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-green-600">
-                                    ${totalIncomes.toFixed(2)}
+                                    ₹{totalIncomes.toFixed(2)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -501,7 +480,7 @@ const FinanceDashboard = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-red-600">
-                                    ${totalExpenses.toFixed(2)}
+                                    ₹{totalExpenses.toFixed(2)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -521,7 +500,7 @@ const FinanceDashboard = () => {
                                             : 'text-red-600'
                                     }`}
                                 >
-                                    ${netBalance.toFixed(2)}
+                                    ₹{netBalance.toFixed(2)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -606,6 +585,7 @@ const FinanceDashboard = () => {
                         onInputChange={handleInputChange}
                         onCategoryChange={handleCategoryChange}
                         onSave={handleSave}
+                        onCsvUpload={handleCsvUpload}
                         isSubmitting={isSubmitting}
                         categories={
                             activeTab === 'expense'

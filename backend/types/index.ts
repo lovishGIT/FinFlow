@@ -23,3 +23,21 @@ export interface User {
     createdAt: Date,
     updatedAt: Date,
 }
+
+export interface IncomeCSVRow {
+    title?: string;
+    category?: string;
+    description?: string;
+    amount: string | number;
+    date?: string;
+    senderId?: string;
+}
+
+export interface ExpenseCSVRow {
+    title?: string;
+    category?: string;
+    description?: string;
+    amount: string | number;
+    date?: string;
+    receiverId?: string;
+}

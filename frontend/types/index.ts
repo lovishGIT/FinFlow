@@ -21,8 +21,6 @@ export interface Expense {
     description: string;
     amount: number;
     date: Date | string;
-    receiverId?: string;
-    receiverEmail?: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
 }
@@ -34,8 +32,6 @@ export interface Income {
     description: string;
     amount: number;
     date: Date | string;
-    senderId?: string;
-    senderEmail?: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
 }
@@ -61,3 +57,21 @@ export interface Report {
         income: number;
     }[];
 };
+
+export interface Subscription {
+    id: string;
+    name: string;
+    category?: string;
+    amount: number;
+    description?: string;
+    status: 'ACTIVE' | 'INACTIVE' | 'CANCELLED';
+
+    userId?: string;      // Optional
+    user?: User | string; // Optional
+
+    startDate: string;
+    endDate?: string;
+
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+}

@@ -60,6 +60,7 @@ model User {
 
     expenses  String[] @db.VarChar() // Handle This Manually
     incomes   String[] @db.VarChar() // Handle This Manually
+    subscriptions Subscription[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -70,7 +71,7 @@ model Expense { // Handle User Manually
     title       String   @db.VarChar() @default("Miscellaneous")
     category    String   @db.VarChar() @default("Others")
     description String?  @db.Text()
-    amount      Float    
+    amount      Float
     date        DateTime @default(now())
 
     senderId    String   @db.VarChar() // Current User
@@ -90,6 +91,30 @@ model Income { // Handle User Manually
 
     senderId    String? @db.VarChar() // User who sent
     receiverId  String  @db.VarChar() // Current User
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+enum SubscriptionStatus {
+    ACTIVE
+    INACTIVE
+    CANCELLED
+}
+
+model Subscription { // Handle User Manually
+    id          String   @db.VarChar() @id @default(uuid())
+    name        String   @db.VarChar() @default("Miscellaneous")
+    category    String   @db.VarChar() @default("Others")
+    amount      Float
+    description String?  @db.Text()
+    status      SubscriptionStatus @default(ACTIVE)
+
+    userId      String   @db.VarChar()
+    user        User     @relation(fields: [userId], references: [id])
+
+    startDate   DateTime @default(now())
+    endDate     DateTime?
 
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt

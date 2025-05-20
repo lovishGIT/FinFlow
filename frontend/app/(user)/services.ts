@@ -1,4 +1,4 @@
-import { Expense, Income, User } from '@/types';
+import { Expense, Income, Subscription, User } from '@/types';
 import { fetcher } from '@/lib/api.utils';
 
 export const fetchUserService = async ({ setUser }: {
@@ -116,4 +116,85 @@ export async function deleteIncomeService(id: string, deleteIncome: (id: string)
     if (!deletedIncome) throw new Error('Failed to delete income');
 
     deleteIncome(id);
+};
+
+// Subscription Services
+
+export async function fetchSubscriptionsService(setSubscriptions: (subscriptions: Subscription[]) => void) {
+    const subscriptions = await fetcher<Subscription[]>(
+        '/api/subscriptions'
+    );
+
+    console.log('Subscriptions Data: ', subscriptions);
+
+    if (!subscriptions) {
+        throw new Error('Invalid Subscriptions Data');
+    }
+
+    setSubscriptions(subscriptions || []);
+};
+
+// Fetch a single subscription by ID
+export async function fetchSubscriptionByIdService ( id: string, setSubscription: (subscription: Subscription) => void) {
+    const subscription = await fetcher<Subscription>(`/api/subscriptions/${id}`);
+
+    if (!subscription) {
+        throw new Error('Invalid Subscription Data');
+    }
+
+    setSubscription(subscription);
+};
+
+// Add a new subscription
+export async function addSubscriptionService(
+    subscription: Partial<Subscription>,
+    addSubscription: (subscription: Subscription) => void
+) {
+    const newSubscription = await fetcher<Subscription>('/api/subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+        credentials: 'include',
+    });
+
+    if (!newSubscription) throw new Error('Failed to add subscription');
+
+    addSubscription(newSubscription);
+    return newSubscription;
+};
+
+// Update an existing subscription
+export async function updateSubscriptionService(
+    id: string,
+    updatedSubscription: Partial<Subscription>,
+    updateSubscription: (id: string, updatedSubscription: Partial<Subscription>) => void
+) {
+    const newUpdatedSubscription = await fetcher(`/api/subscriptions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSubscription),
+    });
+
+    if (!newUpdatedSubscription) throw new Error('Failed to update subscription');
+
+    updateSubscription(id, updatedSubscription);
+};
+
+// Toggle subscription status (active/inactive/cancelled)
+export async function toggleSubscriptionService(
+    id: string,
+    updateSubscription: (id: string, updatedSubscription: Partial<Subscription>) => void
+) {
+    const toggledSubscription = await fetcher<Subscription>(`/api/subscriptions/toggle/${id}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+    });
+
+    if (!toggledSubscription) throw new Error('Failed to toggle subscription');
+
+    // Update the subscription in the state with the returned data
+    updateSubscription(id, toggledSubscription);
+
+    return toggledSubscription;
 };
